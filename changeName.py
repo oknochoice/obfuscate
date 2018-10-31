@@ -79,8 +79,10 @@ def fileFunctions(filepath):
                 continue
             else:
                 templine = templine[0: templineEnd]
-                templine =  templine.strip()
+                templine = templine.strip()
                 templine = re.sub(' +', ' ', templine)
+                templine = re.sub('\(.*?\)', '', templine)
+                templine = re.sub('(:.*? )|(:.*?$)', ':', templine)
                 function.append(templine)
                 templine = ""
         return function
