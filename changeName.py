@@ -1,5 +1,7 @@
 import os
 import sys
+import sqlite3
+
 def list_all_files(rootdir):
     _files = []
     list = os.listdir(rootdir) #列出文件夹下所有的目录与文件
@@ -10,10 +12,23 @@ def list_all_files(rootdir):
            if os.path.isfile(path):
               _files.append(path)
     return _files
+
+
 def main():
-    path = "/media/yijian/data/VShare/git/emark"
+    path = "/media/yijian/data/VShare/git/emark/emark"
     for filename in iter(list_all_files(path)):
-        print(filename)
+        part = os.path.split(filename)
+        if (part[0].find("/Assets.xcassets") != -1 or
+            part[1].find(".plist") != -1 or
+            part[1].find(".strings") != -1 or
+            part[1].find("main.m") != -1 or
+            part[1].find("AppDelegate.m") != -1 or
+            part[1].find("AppDelegate.m") != -1 or
+            part[1].find(".pch") != -1 or
+            part[1].find(".storyboard") != -1) :
+            pass
+        else:
+            print(part[1])
 
 
 if __name__ == "__main__":
