@@ -18,16 +18,14 @@ def list_all_files(rootdir):
 def split_word(camel:str):
     _words = []
     first = 0
-    last = 0
     for i in range(len(camel) - 1):
-        last = i
         if camel[i].isupper() and camel[i+1].islower():
             if i == 0:
                 pass
             else:
                 _words.append(camel[first: i])
                 first = i
-    _words.append(camel[last:])
+    _words.append(camel[first:])
     return _words
 
 def cleanInput(content):
@@ -70,7 +68,7 @@ def fileFunctions(filepath):
             line = re.sub('\n', ' ', line)
             if (len(line) != 0 and
                 #(line[0:2] == '+(' or line[0:2] == '-(')):
-                re.search('^ *[-+] *\(', line) != None):
+                re.search(r'^ *[-+] *\(', line) != None):
                 templine = line
             elif (len(templine) != 0):
                 templine += line
@@ -81,13 +79,22 @@ def fileFunctions(filepath):
                 templine = templine[0: templineEnd]
                 templine = templine.strip()
                 templine = re.sub(' +', ' ', templine)
-                templine = re.sub('\(.*?\)', '', templine)
-                templine = re.sub('(:.*? )|(:.*?$)', ':', templine)
-                function.append(templine)
+                if templine.find(':') != -1:
+                    function.append(templine)
                 templine = ""
         return function
 
-
+def fileFunctionWordSet(path):
+    words = set()
+    for func in enumerate(fileFunctions(path)):
+        #print(func)
+        #print(type(func))
+        #lfunc = re.sub(r'[-+]', '', func[1])
+        lfunc = re.sub(r'[-+].*?\)', '', func[1])
+        lfunc = re.sub(r':.*', '',lfunc)
+        words |= set(split_word(lfunc))
+        print(lfunc)
+    return words
 
 def fileNameSet():
     words = set()
@@ -109,15 +116,18 @@ def fileNameSet():
             if part[1].find('+') == -1:
                 for word in split_word(part[1]):
                     if word.find(".") == -1:
-                        words.add(word)
+                        #words.add(word)
+                        pass
         if filename[-1] == 'm':
-            functions = fileFunctions(filename)
-            for function in enumerate(functions):
-                print(function)
+            #words |= fileFunctionWordSet(filename)
+            print(fileFunctionWordSet(filename))
     return words
 
 def main():
     #print(createDictionary(list(fileNameSet()),get_candidate_words()))
+    #for word in enumerate(fileNameSet()):
+    #    print(word)
+    # print(fileNameSet())
     fileNameSet()
     
 
