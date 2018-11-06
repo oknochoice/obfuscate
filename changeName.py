@@ -55,6 +55,25 @@ def get_candidate_words():
     with open('words.txt', 'r') as f:
         return cleanInput(f.read())
 
+def adjustLine(filename):
+    with open(filename, encoding="utf8", errors='ignore') as file:
+        text = str()
+        while True:
+            line = file.readline()
+            #print(line)
+            if line == '':
+                break
+            if (len(line) != 0 and
+                #(line[0:2] == '+(' or line[0:2] == '-(')):
+                re.search(r'^ *[-+] *\(', line) != None and
+                line.find('{') == -1):
+                line = re.sub('\n', '', line)
+            if (len(line) != 0 and
+                line.find('{') != -1):
+                line = re.sub('{', '{\n', line)
+            text += line
+        return text
+
 
 def fileFunctions(filepath):
     with open(filepath, encoding="utf8", errors='ignore') as file:
@@ -84,21 +103,34 @@ def fileFunctions(filepath):
                 templine = ""
         return function
 
-def fileFunctionWordSet(path):
-    words = set()
-    for func in enumerate(fileFunctions(path)):
-        #print(func)
-        #print(type(func))
-        #lfunc = re.sub(r'[-+]', '', func[1])
-        lfunc = re.sub(r'[-+].*?\)', '', func[1])
-        lfunc = re.sub(r':.*', '',lfunc)
-        words |= set(split_word(lfunc))
-        print(lfunc)
-    return words
+def functionName(functionSign):
+    stack = []
+    lfunc = str()
+    isBeginPara = False
+    for i in range(len(functionSign) - 1):
+        c = functionSign[i]
+        if c == '(':
+            stack.append(c)
+            if i != 0 and functionSign[i-1] == ':':
+                isBeginPara = True
+        elif c == ')':
+            stack.pop()
+        else:
+            if len(stack) == 0 and isBeginPara == False:
+                lfunc += c
+                if c == '-' or c == '+':
+                    lfunc += ' '
+            else:
+                pass
+            if len(stack) == 0 and c == ' ':
+                isBeginPara = False
+                lfunc += c
+    ll = re.sub(r' +', ' ', lfunc)
+    return ll
 
-def fileNameSet():
-    words = set()
+def outputFunctionsAndDictionary():
     path = "/media/yijian/data/VShare/git/emark/emark"
+    functions = set()
     for filename in iter(list_all_files(path)):
         part = os.path.split(filename)
         if (part[0].find("/Assets.xcassets") != -1 or
@@ -108,27 +140,26 @@ def fileNameSet():
             part[1].find("AppDelegate.m") != -1 or
             part[1].find("AppDelegate.h") != -1 or
             part[1].find(".pch") != -1 or
+            part[1].find("+") != -1 or
             part[1].find(".storyboard") != -1) :
             pass
         else:
-            #print(part)
-            #print(split_word(part[1]))
-            if part[1].find('+') == -1:
-                for word in split_word(part[1]):
-                    if word.find(".") == -1:
-                        #words.add(word)
-                        pass
-        if filename[-1] == 'm':
-            #words |= fileFunctionWordSet(filename)
-            print(fileFunctionWordSet(filename))
-    return words
+            if filename[-1] == 'm':
+                #words |= fileFunctionWordSet(filename)
+                functions |= set(fileFunctions(filename))
+                print(adjustLine(filename))
+    with open('functions.out', 'w') as f:
+        for funcSign in functions:
+            f.write(functionName(funcSign))
+            f.write('\n')
+
 
 def main():
     #print(createDictionary(list(fileNameSet()),get_candidate_words()))
     #for word in enumerate(fileNameSet()):
     #    print(word)
     # print(fileNameSet())
-    fileNameSet()
+    outputFunctionsAndDictionary()
     
 
 
